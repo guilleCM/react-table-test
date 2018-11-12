@@ -127,10 +127,10 @@ class App extends Component {
             <div ref={this.gridRef}>
                 <ReactTable
                     columns={[
-                        {
-                            Header: props => <span><i className="fas fa-cog"/> Tools</span>,
-                            Cell: this.renderToolsCell,
-                        },                       
+                        // {
+                        //     Header: props => <span><i className="fas fa-cog"/> Tools</span>,
+                        //     Cell: this.renderToolsCell,
+                        // },                       
                         {
                             Header: props => <span><i className="fas fa-sort"/> ID <i className="fas fa-key"/></span>,
                             accessor: "id",
@@ -161,8 +161,54 @@ class App extends Component {
                     // sortable={false}
                     defaultPageSize={10}
                     className="-striped -highlight"
-                    id="grid-table"
                     resizable={false}
+                    SubComponent={row => {
+                        return(
+                            <div style={{padding: 15}}>
+                                <ReactTable
+                                    data={data.concat(data)}
+                                    columns={[            
+                                        {
+                                            Header: props => <span><i className="fas fa-sort"/> ID <i className="fas fa-key"/></span>,
+                                            accessor: "id",
+                                            Cell: this.renderCell,
+                                            },
+                                        {
+                                            Header: props => <span><i className="fas fa-sort"/> User </span>,
+                                            accessor: "userId",
+                                            Cell: this.renderCell,
+                                        },
+                                        {
+                                            Header: props => <span><i className="fas fa-sort"/> Title </span>,
+                                            accessor: "title",
+                                            Cell: this.renderCell,
+                                        },
+                                        {
+                                            Header: props => <span><i className="fas fa-sort"/> Done </span>,
+                                            accessor: "completed",
+                                            Cell: this.renderCell,
+                                        }
+                                    ]}
+                                    defaultPageSize={3}
+                                    showPagination={false}
+                                    SubComponent={row => {
+                                    return (
+                                        <div style={{ padding: "20px" }}>
+                                        Another Sub Component!
+                                        </div>
+                                    );
+                                    }}
+                                    resizable={false}
+                                    className="-striped -highlight"
+                                    manual
+                                    loading={loading}
+                                    style={{
+                                        height: 400
+                                    }}
+                                /> 
+                            </div>
+                        )
+                    }}
                 />
             </div>
 

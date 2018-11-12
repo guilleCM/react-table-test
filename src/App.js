@@ -8,6 +8,35 @@ import $ from 'jquery';
 import logo from './logo.svg';
 import './App.css';
 
+class CellEditor extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            value: props.cellInfo.value,
+        };
+        this.onChangeValue = this.onChangeValue.bind(this);
+    }
+
+    render() {
+        return(
+            <div className={this.props.className}>
+                <input 
+                    style={{width: '100%'}}
+                    type="text"
+                    value={this.state.value}
+                    onChange={(e) => this.onChangeValue(e)}
+                />
+            </div>
+        )
+    }
+
+    onChangeValue(event) {
+        this.setState({
+            value: event.target.value,
+        })
+    }
+}
+
 class App extends Component {
     constructor() {
         super();
@@ -19,16 +48,31 @@ class App extends Component {
             limit: 10,
             gridEditor: {
                 'rowIndex': null,
-                'columnIndex': null,
+                'columnName': null,
             },
             gridNavigator: {
                 'rowIndex': null,
-                'columnIndex': null,
+                'columnName': null,
             },
+            rowLimits: [10, 25, 50, 100, 300],
         };
         this.fetchData = this.fetchData.bind(this);
         this.renderCell = this.renderCell.bind(this);
         this.renderEditableCell = this.renderEditableCell.bind(this);
+        this.updateRowsLimit = this.updateRowsLimit.bind(this);
+        this.fixedHeaderRef = React.createRef();
+        this.gridRef = React.createRef();
+    }
+
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        console.log("update")
+        $(this.gridRef.current).find('.rt-thead').clone().appendTo(this.fixedHeaderRef.current);
+        if ($(this.fixedHeaderRef.current).children().length > 1) {
+            $(this.fixedHeaderRef.current).children().first().remove();
+        }
+        if(prevState.limit !== this.state.limit) {
+            this.fetchData();
+        }
     }
 
     render() {
@@ -38,9 +82,30 @@ class App extends Component {
             <header className="App-header">
                 <img src={logo} className="App-logo" alt="logo" />
             </header>
-            <div>
+            
+            <div 
+                className="ReactTable"
+                style={{
+                    position: 'sticky',
+                    top: 0,
+                    backgroundColor: 'white',
+                    zIndex: 2,
+                    boxShadow: '0 2px 15px 0 rgba(0,0,0,0.15)',
+                }}
+            >
+                <div
+                    className="rt-table"
+                    ref={this.fixedHeaderRef}>
+                </div>
+            </div>
+
+            <div ref={this.gridRef}>
                 <ReactTable
-                    columns={[                        
+                    columns={[
+                        {
+                            Header: props => <span><i className="fas fa-cog"/> Tools</span>,
+                            Cell: this.renderToolsCell,
+                        },                       
                         {
                             Header: props => <span><i className="fas fa-sort"/> ID <i className="fas fa-key"/></span>,
                             accessor: "id",
@@ -71,14 +136,36 @@ class App extends Component {
                     // sortable={false}
                     defaultPageSize={10}
                     className="-striped -highlight"
+                    id="grid-table"
+                    resizable={false}
                 />
             </div>
+
+            <div 
+                className="GridFooter"
+                style={{
+                    position: 'sticky',
+                    bottom: 0,
+                    backgroundColor: 'white',
+                    zIndex: 2,
+                    padding: 10,
+                    boxShadow: '0 -2px 15px 0 rgba(0,0,0,0.15)',
+                }}
+            >
+                <span>PAGINATION </span>
+                <select 
+                    value={this.state.limit} 
+                    onChange={this.updateRowsLimit} 
+                    className="form-control form-control-sm"
+                >
+                    {this.state.rowLimits.map(limitValue => {
+                        return <option key={limitValue} value={String(limitValue)}>{limitValue}</option>
+                    })}
+                </select>
+            </div>
+
         </div>
         );
-    }
-
-    onClickCell() {
-
     }
 
     fetchData(state, instance) {
@@ -99,26 +186,65 @@ class App extends Component {
     }
 
     renderCell(cellInfo) {
-        return (
-            <div
-                onBlur={e => {
-                    console.log("blur")
-                    // const data = [...this.state.data];
-                    // data[cellInfo.index][cellInfo.column.id] = e.target.innerHTML;
-                    // this.setState({ data });
-                }}
-                onClick={e => {
-                    this.setState({
-                        gridNavigator: {
-                            'rowIndex': cellInfo.index,
-                            'cellIndex': $(e.currentTarget.closest('.rt-td')).index(),
-                        }
-                    })
-                }}
-            >
-                {typeof cellInfo.value === 'boolean' ? (cellInfo.value ? "Yes" : "No") : cellInfo.value}
+        let className = "rd-td-content";
+        if (this.state.gridNavigator.rowIndex === cellInfo.index) {
+            className += " rt-td-sel";
+        }
+        if (this.state.gridNavigator.rowIndex === cellInfo.index 
+            && this.state.gridNavigator.columnName === cellInfo.column.id) {
+            className += " rt-td-foc";
+        }
+        if (this.state.gridEditor.rowIndex === cellInfo.index && this.state.gridEditor.columnName === cellInfo.column.id) {
+            return (
+                <CellEditor 
+                    cellInfo={cellInfo}
+                    className={className}
+                />
+            )
+        }
+        else {
+            return (
+                <div
+                    onBlur={e => {
+                        console.log("blur")
+                        // const data = [...this.state.data];
+                        // data[cellInfo.index][cellInfo.column.id] = e.target.innerHTML;
+                        // this.setState({ data });
+                    }}
+                    onClick={e => {
+                        this.setState({
+                            gridNavigator: {
+                                'rowIndex': cellInfo.index,
+                                'columnName': cellInfo.column.id,
+                            }
+                        })
+                    }}
+                    onDoubleClick={e => {
+                        this.setState({
+                            gridEditor: {
+                                'rowIndex': cellInfo.index,
+                                'columnName': cellInfo.column.id,
+                            }
+                        })
+                    }}
+                    className={className}
+                >   
+                    <span>
+                        {typeof cellInfo.value === 'boolean' ? (cellInfo.value ? "Yes" : "No") : cellInfo.value}
+                    </span>
+                </div>
+            );
+        }
+    }
+
+    renderToolsCell(cellInfo) {
+        return(
+            <div className="rt-td-tools">
+                <a href="/item">
+                    <i className="fas fa-pencil-alt"></i>
+                </a>
             </div>
-        );
+        )
     }
 
     renderEditableCell(cellInfo) {
@@ -137,6 +263,12 @@ class App extends Component {
                 }}
             />
         );
+    }
+
+    updateRowsLimit(event) {
+        this.setState({
+            limit: event.target.value*1
+        })
     }
 }
 

@@ -79,6 +79,7 @@ class App extends Component {
                 'columnName': null,
             },
             rowLimits: [10, 25, 50, 100, 300],
+            expanded: {},
         };
         this.fetchData = this.fetchData.bind(this);
         this.renderCell = this.renderCell.bind(this);
@@ -93,11 +94,19 @@ class App extends Component {
         console.log("update")
         $(this.gridRef.current).find('.rt-thead').clone().appendTo(this.fixedHeaderRef.current);
         if ($(this.fixedHeaderRef.current).children().length > 1) {
+            // for (let child of $(this.fixedHeaderRef.current).children()) {
+
+            // }
             $(this.fixedHeaderRef.current).children().first().remove();
         }
         if(prevState.limit !== this.state.limit) {
             this.fetchData();
         }
+        // window.addEventListener('scroll', function(){console.log("scroll")});
+    }
+
+    componentDidMount() {
+        window.addEventListener('scroll', function(){console.log("scroll")});
     }
 
     render() {
@@ -116,6 +125,7 @@ class App extends Component {
                     backgroundColor: 'white',
                     zIndex: 2,
                     boxShadow: '0 2px 15px 0 rgba(0,0,0,0.15)',
+                    display: 'none'
                 }}
             >
                 <div
@@ -130,7 +140,26 @@ class App extends Component {
                         // {
                         //     Header: props => <span><i className="fas fa-cog"/> Tools</span>,
                         //     Cell: this.renderToolsCell,
-                        // },                       
+                        // },       
+                        // {
+
+                        //         expander: true,
+                        //         Header: () => <strong>More</strong>,
+                        //         width: 65,
+                        //         Expander: ({ isExpanded, ...rest }) =>
+                        //           <div>
+                        //             {isExpanded
+                        //               ? <span>&#x2299;</span>
+                        //               : <span>&#x2295;</span>}
+                        //           </div>,
+                        //         style: {
+                        //           cursor: "pointer",
+                        //           fontSize: 25,
+                        //           padding: "0",
+                        //           textAlign: "center",
+                        //           userSelect: "none"
+                        //         },
+                        // },                
                         {
                             Header: props => <span><i className="fas fa-sort"/> ID <i className="fas fa-key"/></span>,
                             accessor: "id",
@@ -162,6 +191,8 @@ class App extends Component {
                     defaultPageSize={10}
                     className="-striped -highlight"
                     resizable={false}
+                    // onExpandedChange={(newExpanded, index, event) => {this.onExpandSubGrid(newExpanded, index, event)}}
+                    // expanded={this.state.expanded}
                     SubComponent={row => {
                         return(
                             <div style={{padding: 15}}>
@@ -373,6 +404,18 @@ class App extends Component {
         console.log(newValue)
     }
 
+    onExpandSubGrid(newExpanded, index, event) {
+        console.log("SUBGRID EXPAND")
+        let expanded = {...this.state.expanded};
+        expanded[index] = true;
+        this.setState({
+            expanded: expanded
+        })
+    }
+
+    handleScroll() {
+        console.log("Scroll")
+    }
 }
 
 export default App;

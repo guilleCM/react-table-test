@@ -125,7 +125,7 @@ class App extends Component {
                     backgroundColor: 'white',
                     zIndex: 2,
                     boxShadow: '0 2px 15px 0 rgba(0,0,0,0.15)',
-                    display: 'none'
+                    // display: 'none'
                 }}
             >
                 <div
@@ -195,7 +195,7 @@ class App extends Component {
                     // expanded={this.state.expanded}
                     SubComponent={row => {
                         return(
-                            <div style={{padding: 15}}>
+                            <div style={{padding: 15, paddingLeft: 35}}>
                                 <ReactTable
                                     data={data.concat(data)}
                                     columns={[            

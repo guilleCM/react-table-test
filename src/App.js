@@ -15,12 +15,22 @@ class CellEditor extends Component {
             value: props.cellInfo.value,
         };
         this.onChangeValue = this.onChangeValue.bind(this);
+        this.handleKeyDown = this.handleKeyDown.bind(this);
+        this.inputRef = React.createRef();
+    }
+
+    componentDidMount() {
+        $(this.inputRef.current).focus();
     }
 
     render() {
         return(
-            <div className={this.props.className}>
-                <input 
+            <div 
+                className={this.props.className + " rt-td-edit"}
+                onKeyDown={(e) => this.handleKeyDown(e)}
+            >
+                <input
+                    ref={this.inputRef} 
                     style={{width: '100%'}}
                     type="text"
                     value={this.state.value}
@@ -35,6 +45,19 @@ class CellEditor extends Component {
             value: event.target.value,
         })
     }
+
+    // onBlurInput(event) {
+    //     console.log(event)
+    // }
+
+    handleKeyDown(event) {
+        if (event.key === "Tab") {
+            event.preventDefault();
+            console.log("handle Tab")
+            console.log(event)
+            this.props.onCellEdit(this.props.cellInfo, this.state.value)
+        }
+    }
 }
 
 class App extends Component {
@@ -42,6 +65,7 @@ class App extends Component {
         super();
         this.state = {
             data: [],
+            editedData: [],
             pages: null,
             loading: true,
             start: 0,
@@ -60,6 +84,7 @@ class App extends Component {
         this.renderCell = this.renderCell.bind(this);
         this.renderEditableCell = this.renderEditableCell.bind(this);
         this.updateRowsLimit = this.updateRowsLimit.bind(this);
+        this.onCellEdit = this.onCellEdit.bind(this);
         this.fixedHeaderRef = React.createRef();
         this.gridRef = React.createRef();
     }
@@ -199,10 +224,12 @@ class App extends Component {
                 <CellEditor 
                     cellInfo={cellInfo}
                     className={className}
+                    onCellEdit={this.onCellEdit}
                 />
             )
         }
         else {
+            let value = typeof cellInfo.value === 'boolean' ? (cellInfo.value ? "Yes" : "No") : cellInfo.value;
             return (
                 <div
                     onBlur={e => {
@@ -216,6 +243,10 @@ class App extends Component {
                             gridNavigator: {
                                 'rowIndex': cellInfo.index,
                                 'columnName': cellInfo.column.id,
+                            },
+                            gridEditor: {
+                                'rowIndex': null,
+                                'columnName': null,
                             }
                         })
                     }}
@@ -230,7 +261,7 @@ class App extends Component {
                     className={className}
                 >   
                     <span>
-                        {typeof cellInfo.value === 'boolean' ? (cellInfo.value ? "Yes" : "No") : cellInfo.value}
+                        {value}
                     </span>
                 </div>
             );
@@ -270,6 +301,32 @@ class App extends Component {
             limit: event.target.value*1
         })
     }
+
+    onCellEdit(cellInfo, newValue) {
+        const columns = ["id", "userId", "title", "completed"];
+        let currentColumnIndex = columns.indexOf(cellInfo.column.id);
+        let nextColumnIndex = currentColumnIndex + 1;
+        let editedData = [...this.state.editedData];
+        let editedItem = {
+            "id": cellInfo.row["id"],
+        };
+        editedItem[cellInfo.column.id] = newValue;
+        editedData.push(editedItem);
+        this.setState({
+            gridNavigator: {
+                'rowIndex': cellInfo.index,
+                'columnName': columns[nextColumnIndex],
+            },
+            gridEditor: {
+                'rowIndex': cellInfo.index,
+                'columnName': columns[nextColumnIndex],     
+            },
+            editedData: editedData
+        })
+        console.log(cellInfo)
+        console.log(newValue)
+    }
+
 }
 
 export default App;

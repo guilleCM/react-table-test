@@ -95,8 +95,11 @@ class App extends Component {
         if ($(this.fixedHeaderRef.current).children().length > 1) {
             $(this.fixedHeaderRef.current).children().first().remove();
         }
-        if(prevState.limit !== this.state.limit) {
+        if (prevState.limit !== this.state.limit) {
             this.fetchData();
+        }
+        if (JSON.stringify(prevState.editedData) !== JSON.stringify(this.state.editedData)) {
+            console.log("edited data callback")
         }
     }
 
@@ -177,7 +180,7 @@ class App extends Component {
                     boxShadow: '0 -2px 15px 0 rgba(0,0,0,0.15)',
                 }}
             >
-                <span>PAGINATION </span>
+                <span>ROWS: </span>
                 <select 
                     value={this.state.limit} 
                     onChange={this.updateRowsLimit} 

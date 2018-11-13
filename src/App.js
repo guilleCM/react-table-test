@@ -60,6 +60,74 @@ class CellEditor extends Component {
     }
 }
 
+function isElementInViewPort(elem, offset = 0) {
+    let docViewTop = $(window).scrollTop();
+    let docViewBottom = docViewTop + $(window).height();
+    try {
+        let elemTop = $(elem).offset().top - offset;
+        let elemBottom = elemTop + $(elem).height();
+        return ((elemBottom <= docViewBottom) && (elemTop >= docViewTop));
+    }
+    catch(err) {
+        return false;
+    }
+}
+
+class FixedGridHeader extends Component {
+    constructor(props) {
+        super(props);
+        this.handleScroll = this.handleScroll.bind(this);
+        //refs
+        this.scrollFlag = React.createRef();
+        this.fixedHeaderDiv = React.createRef();
+    }
+    componentDidMount() {
+        window.addEventListener('scroll', (e) => this.handleScroll(e));
+    }
+    componentDidUpdate() {
+        console.log("fixedheader")
+    }
+    render() {
+        return(
+            <React.Fragment>
+                <div ref={this.scrollFlag}></div>
+                <div 
+                    ref={this.fixedHeaderDiv}
+                    className="ReactTable ReactTableFixedGridHeader"
+                    style={{
+                        position: 'sticky',
+                        top: 0,
+                        backgroundColor: 'white',
+                        zIndex: 2,
+                        boxShadow: '0 2px 15px 0 rgba(0,0,0,0.15)',
+                    }}
+                >
+                    <div
+                        className="rt-table"
+                        ref={this.props.fixedHeaderRef}>
+                    </div>
+                </div>
+            </React.Fragment>
+        )
+    }
+    handleScroll(event) {
+        const offset = $(this.props.gridTargetRef.current).find('.rt-thead').height();
+        if (!isElementInViewPort(this.scrollFlag.current, -offset)) {
+            if (this.fixedHeaderDiv.current.style.display !== "block") {
+                // console.log("SHOW")
+                $(this.fixedHeaderDiv.current).show();
+                // const windowScrollX = window.scrollX;
+                // let windowScrollY = window.scrollY + offset;
+                // window.scroll(windowScrollX, windowScrollY);
+            }
+            // console.log("ELSE")
+        } else {
+            // console.log("HIDE")
+            $(this.fixedHeaderDiv.current).hide();
+        }
+    }
+}
+
 class App extends Component {
     constructor() {
         super();
@@ -86,6 +154,8 @@ class App extends Component {
         this.renderEditableCell = this.renderEditableCell.bind(this);
         this.updateRowsLimit = this.updateRowsLimit.bind(this);
         this.onCellEdit = this.onCellEdit.bind(this);
+        // this.handleScroll = this.handleScroll.bind(this);
+        //refs
         this.fixedHeaderRef = React.createRef();
         this.gridRef = React.createRef();
     }
@@ -102,11 +172,6 @@ class App extends Component {
         if(prevState.limit !== this.state.limit) {
             this.fetchData();
         }
-        // window.addEventListener('scroll', function(){console.log("scroll")});
-    }
-
-    componentDidMount() {
-        window.addEventListener('scroll', function(){console.log("scroll")});
     }
 
     render() {
@@ -117,22 +182,10 @@ class App extends Component {
                 <img src={logo} className="App-logo" alt="logo" />
             </header>
             
-            <div 
-                className="ReactTable"
-                style={{
-                    position: 'sticky',
-                    top: 0,
-                    backgroundColor: 'white',
-                    zIndex: 2,
-                    boxShadow: '0 2px 15px 0 rgba(0,0,0,0.15)',
-                    // display: 'none'
-                }}
-            >
-                <div
-                    className="rt-table"
-                    ref={this.fixedHeaderRef}>
-                </div>
-            </div>
+            <FixedGridHeader 
+                fixedHeaderRef={this.fixedHeaderRef} 
+                gridTargetRef={this.gridRef}
+            />
 
             <div ref={this.gridRef}>
                 <ReactTable
@@ -411,10 +464,6 @@ class App extends Component {
         this.setState({
             expanded: expanded
         })
-    }
-
-    handleScroll() {
-        console.log("Scroll")
     }
 }
 

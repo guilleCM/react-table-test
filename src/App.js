@@ -287,7 +287,8 @@ class App extends Component {
                                     manual
                                     loading={loading}
                                     style={{
-                                        height: 400
+                                        height: 'auto',
+                                        maxHeight: 400
                                     }}
                                 /> 
                             </div>

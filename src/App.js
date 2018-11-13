@@ -103,6 +103,10 @@ class App extends Component {
         }
     }
 
+    whatIs(props) {
+        console.log(props)
+    }
+
     render() {
         const { data, pages, loading } = this.state;
         return (
@@ -131,7 +135,7 @@ class App extends Component {
                 <ReactTable
                     columns={[
                         {
-                            Header: props => <span><i className="fas fa-cog"/> Tools</span>,
+                            Header: props => <span onClick={this.whatIs(props)}><i className="fas fa-cog" /> Tools</span>,
                             Cell: this.renderToolsCell,
                         },                       
                         {

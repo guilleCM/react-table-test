@@ -5,8 +5,6 @@ import axios from "axios";
 import $ from 'jquery';
 
 //local resources
-import Grid from './Grid.js';
-import GridTwo from './GridTwo.js';
 import logo from './logo.svg';
 import './App.css';
 
@@ -179,16 +177,144 @@ class App extends Component {
     render() {
         const { data, pages, loading } = this.state;
         return (
-        <div className="App">
-            <header className="App-header">
-                <img src={logo} className="App-logo" alt="logo" />
-            </header>
-            
-            <Grid />
-            
-            <br/><br/>
+        <div className="Grid">
+            <FixedGridHeader 
+                fixedHeaderRef={this.fixedHeaderRef} 
+                gridTargetRef={this.gridRef}
+            />
 
-            <GridTwo />
+            <div ref={this.gridRef}>
+                <ReactTable
+                    columns={[
+                        // {
+                        //     Header: props => <span><i className="fas fa-cog"/> Tools</span>,
+                        //     Cell: this.renderToolsCell,
+                        // },       
+                        // {
+
+                        //         expander: true,
+                        //         Header: () => <strong>More</strong>,
+                        //         width: 65,
+                        //         Expander: ({ isExpanded, ...rest }) =>
+                        //           <div>
+                        //             {isExpanded
+                        //               ? <span>&#x2299;</span>
+                        //               : <span>&#x2295;</span>}
+                        //           </div>,
+                        //         style: {
+                        //           cursor: "pointer",
+                        //           fontSize: 25,
+                        //           padding: "0",
+                        //           textAlign: "center",
+                        //           userSelect: "none"
+                        //         },
+                        // },                
+                        {
+                            Header: props => <span><i className="fas fa-sort"/> ID <i className="fas fa-key"/></span>,
+                            accessor: "id",
+                            Cell: this.renderCell,
+                            },
+                        {
+                            Header: props => <span><i className="fas fa-sort"/> User </span>,
+                            accessor: "userId",
+                            Cell: this.renderCell,
+                        },
+                        {
+                            Header: props => <span><i className="fas fa-sort"/> Title </span>,
+                            accessor: "title",
+                            Cell: this.renderCell,
+                        },
+                        {
+                            Header: props => <span><i className="fas fa-sort"/> Done </span>,
+                            accessor: "completed",
+                            Cell: this.renderCell,
+                        }
+                    ]}
+                    manual // Forces table not to paginate or sort automatically, so we can handle it server-side
+                    data={data}
+                    pages={pages} // Display the total number of pages
+                    loading={loading} // Display the loading overlay when we need it
+                    onFetchData={this.fetchData} // Request new data when things change
+                    showPagination={false}
+                    // sortable={false}
+                    defaultPageSize={10}
+                    className="-striped -highlight"
+                    resizable={false}
+                    // onExpandedChange={(newExpanded, index, event) => {this.onExpandSubGrid(newExpanded, index, event)}}
+                    // expanded={this.state.expanded}
+                    SubComponent={row => {
+                        return(
+                            <div style={{padding: 15, paddingLeft: 35}}>
+                                <ReactTable
+                                    data={data.concat(data)}
+                                    columns={[            
+                                        {
+                                            Header: props => <span><i className="fas fa-sort"/> ID <i className="fas fa-key"/></span>,
+                                            accessor: "id",
+                                            Cell: this.renderCell,
+                                            },
+                                        {
+                                            Header: props => <span><i className="fas fa-sort"/> User </span>,
+                                            accessor: "userId",
+                                            Cell: this.renderCell,
+                                        },
+                                        {
+                                            Header: props => <span><i className="fas fa-sort"/> Title </span>,
+                                            accessor: "title",
+                                            Cell: this.renderCell,
+                                        },
+                                        {
+                                            Header: props => <span><i className="fas fa-sort"/> Done </span>,
+                                            accessor: "completed",
+                                            Cell: this.renderCell,
+                                        }
+                                    ]}
+                                    defaultPageSize={3}
+                                    showPagination={false}
+                                    SubComponent={row => {
+                                    return (
+                                        <div style={{ padding: "20px" }}>
+                                        Another Sub Component!
+                                        </div>
+                                    );
+                                    }}
+                                    resizable={false}
+                                    className="-striped -highlight"
+                                    manual
+                                    loading={loading}
+                                    style={{
+                                        height: 'auto',
+                                        maxHeight: 400
+                                    }}
+                                /> 
+                            </div>
+                        )
+                    }}
+                />
+            </div>
+
+            <div 
+                className="GridFooter"
+                style={{
+                    position: 'sticky',
+                    bottom: 0,
+                    backgroundColor: 'white',
+                    zIndex: 2,
+                    padding: 10,
+                    boxShadow: '0 -2px 15px 0 rgba(0,0,0,0.15)',
+                }}
+            >
+                <span>PAGINATION </span>
+                <select 
+                    value={this.state.limit} 
+                    onChange={this.updateRowsLimit} 
+                    className="form-control form-control-sm"
+                >
+                    {this.state.rowLimits.map(limitValue => {
+                        return <option key={limitValue} value={String(limitValue)}>{limitValue}</option>
+                    })}
+                </select>
+            </div>
 
         </div>
         );
